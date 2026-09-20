@@ -1,0 +1,1533 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>投递助手</title>
+  <style>
+    :root {
+      --bg: #f6f7f8;
+      --panel: #ffffff;
+      --text: #20242a;
+      --muted: #69717d;
+      --line: #e4e7eb;
+      --accent: #1f7a5a;
+      --accent-soft: #e9f5ef;
+      --blue: #2d6cdf;
+      --blue-soft: #edf3ff;
+      --amber: #b65f00;
+      --amber-soft: #fff4df;
+      --red: #ba2d2d;
+      --red-soft: #fff0f0;
+      --gray-soft: #eef0f2;
+      --shadow: 0 12px 30px rgba(26, 32, 44, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: 0;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 236px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      background: #fbfbfc;
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 42px;
+      padding: 0 12px;
+      color: var(--muted);
+      background: transparent;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .nav button.active {
+      color: var(--text);
+      background: var(--gray-soft);
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      width: 22px;
+      text-align: center;
+      color: inherit;
+      font-weight: 800;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    .topbar p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .primary-btn, .secondary-btn, .ghost-btn {
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .primary-btn {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 8px 18px rgba(31, 122, 90, 0.18);
+    }
+
+    .secondary-btn {
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .ghost-btn {
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .stat.muted-stat {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .stat .num {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: minmax(330px, 0.82fr) minmax(0, 1.18fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .panel-body {
+      padding: 16px 18px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 170px 170px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 10px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 104px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(31, 122, 90, 0.12);
+    }
+
+    .job-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .job-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "main status"
+        "applied deadline"
+        "action action";
+      gap: 12px;
+      align-items: center;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .job-row > div:first-child {
+      grid-area: main;
+      min-width: 0;
+    }
+
+    .job-row strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 17px;
+    }
+
+    .job-row .tag {
+      grid-area: status;
+      justify-self: end;
+    }
+
+    .applied-meta {
+      grid-area: applied;
+    }
+
+    .job-row .deadline {
+      grid-area: deadline;
+      justify-self: end;
+      white-space: nowrap;
+    }
+
+    .job-row .secondary-btn {
+      grid-area: action;
+      justify-self: end;
+      width: auto;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag.waiting { color: #57606a; background: var(--gray-soft); }
+    .tag.replied { color: var(--blue); background: var(--blue-soft); }
+    .tag.test { color: var(--amber); background: var(--amber-soft); }
+    .tag.interview { color: var(--accent); background: var(--accent-soft); }
+    .tag.result { color: #6f4bd8; background: #f2efff; }
+    .tag.closed { color: var(--red); background: var(--red-soft); }
+    .tag.offer { color: #0b6b78; background: #e6f7fa; }
+
+    .deadline.danger { color: var(--red); font-weight: 800; }
+    .deadline.warn { color: var(--amber); font-weight: 800; }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 8px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .task-bar {
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .task.urgent .task-bar { background: var(--red); }
+    .task.soon .task-bar { background: var(--amber); }
+
+    .today-test-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .today-test {
+      padding: 20px;
+      color: #321800;
+      background: var(--amber-soft);
+      border: 1px solid #ffd895;
+      border-radius: 8px;
+    }
+
+    .today-test strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .today-test .deadline-big {
+      margin-top: 8px;
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--red);
+    }
+
+    .today-test .meta {
+      color: #714000;
+      font-size: 14px;
+    }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed #cfd5dc;
+      border-radius: 8px;
+      background: #fbfbfc;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(16, 24, 32, 0.36);
+      z-index: 10;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-card {
+      width: min(720px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 14px;
+    }
+
+    .email-result {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+    }
+
+    .email-result.warning {
+      color: #6b3500;
+      background: var(--amber-soft);
+      border-color: #ffd895;
+    }
+
+    .email-result.danger {
+      color: var(--red);
+      background: var(--red-soft);
+      border-color: #ffc7c7;
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .choice-card {
+      min-height: 54px;
+      padding: 12px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .choice-card.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 800;
+    }
+
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .provider {
+      min-height: 64px;
+      padding: 12px 8px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .provider.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 800;
+    }
+
+    .import-drop {
+      display: grid;
+      place-items: center;
+      min-height: 132px;
+      padding: 18px;
+      border: 1px dashed #b9c0c9;
+      border-radius: 8px;
+      background: #fbfbfc;
+      text-align: center;
+    }
+
+    .import-drop input {
+      max-width: 260px;
+      margin-top: 10px;
+    }
+
+    .mini-chart {
+      height: 160px;
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      padding-top: 16px;
+    }
+
+    .optional-fields {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .optional-fields.active {
+      display: grid;
+    }
+
+    .optional-fields .wide {
+      grid-column: 1 / -1;
+    }
+
+    .bar {
+      flex: 1;
+      min-width: 34px;
+      display: grid;
+      align-items: end;
+      gap: 8px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bar-fill {
+      width: 100%;
+      min-height: 8px;
+      background: var(--accent);
+      border-radius: 6px 6px 0 0;
+    }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        padding: 16px;
+      }
+      .nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .nav button {
+        justify-content: center;
+        padding: 0 8px;
+      }
+      .nav-icon { display: none; }
+      .main { padding: 18px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layout-2 { grid-template-columns: 1fr; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      .job-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+      }
+      .form-grid { grid-template-columns: 1fr; }
+      .optional-fields { grid-template-columns: 1fr; }
+      .choice-row, .provider-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .stats { grid-template-columns: 1fr; }
+      .primary-btn, .secondary-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">投</div>
+        <div>
+          <h1>投递助手</h1>
+          <p>岗位、测评、面试统一看</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button class="active" data-tab="overview"><span class="nav-icon">01</span>总览</button>
+        <button data-tab="jobs"><span class="nav-icon">02</span>岗位</button>
+        <button data-tab="reminders"><span class="nav-icon">03</span>提醒</button>
+        <button data-tab="email"><span class="nav-icon">04</span>导入整理</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">总览</h2>
+          <p id="pageSub">先看今天要做什么，再处理岗位进度。</p>
+        </div>
+        <button class="primary-btn" id="openAdd">新投递岗位</button>
+      </div>
+
+      <section class="section active" id="overview">
+        <div class="stats" id="stats"></div>
+        <div class="overview-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>今日截止测评</h3>
+              <button class="secondary-btn" data-jump="reminders">查看全部</button>
+            </div>
+            <div class="panel-body">
+              <div class="today-test-list" id="todayTests"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>投递列表</h3>
+              <button class="secondary-btn" data-jump="jobs">管理</button>
+            </div>
+            <div class="panel-body">
+              <div class="job-list" id="overviewJobs"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="jobs">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>全部投递</h3>
+            <button class="secondary-btn" id="resetData">恢复示例</button>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <input id="searchInput" type="search" placeholder="搜索公司、岗位、城市">
+              <select id="statusFilter"></select>
+              <select id="sortSelect">
+                <option value="deadline">按截止时间</option>
+                <option value="applied">按投递时间</option>
+                <option value="company">按公司名称</option>
+              </select>
+            </div>
+            <div class="job-list" id="jobList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="reminders">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>提醒中心</h3>
+            <button class="secondary-btn" id="completeOld">隐藏已结束</button>
+          </div>
+          <div class="panel-body">
+            <div class="task-list" id="allTasks"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="email">
+        <div class="layout-2">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>邮箱导入</h3>
+              <span class="tag replied">原型</span>
+            </div>
+            <div class="panel-body">
+              <div class="choice-row">
+                <button class="choice-card active" data-email-import="yes">导入邮箱</button>
+                <button class="choice-card" data-email-import="no">暂不导入</button>
+              </div>
+              <div id="emailImportPanel">
+                <label>
+                  选择邮箱
+                  <div class="provider-grid" id="providerGrid">
+                    <button class="provider active" data-provider="网易邮箱">网易邮箱</button>
+                    <button class="provider" data-provider="QQ邮箱">QQ邮箱</button>
+                    <button class="provider" data-provider="Outlook">Outlook</button>
+                  </div>
+                </label>
+              </div>
+              <label>
+                粘贴测评或面试邮件
+                <textarea id="emailText" placeholder="例如：恭喜你通过简历筛选，请在 2026-09-22 23:59 前完成在线测评。公司：美团，岗位：商业分析..."></textarea>
+              </label>
+              <div class="modal-actions">
+                <button class="secondary-btn" id="autoScanEmail">模拟自动整理</button>
+                <button class="secondary-btn" id="parseEmail">整理邮箱内容</button>
+                <button class="primary-btn" id="addFromEmail">加入新投递</button>
+              </div>
+              <div class="email-result" id="emailResult">当前版本先支持选择邮箱类型和粘贴邮件文本整理。真正连接邮箱时，会在这里接入网易邮箱、QQ 邮箱或 Outlook 授权。</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>图片 / 文档导入</h3>
+            </div>
+            <div class="panel-body">
+              <div class="import-drop">
+                <div>
+                  <strong>上传照片截图、PDF、Word 或 Excel</strong>
+                  <div class="meta">用于从投递照片、招聘表格、邮件附件里整理新投递岗位。</div>
+                  <input id="importFile" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt">
+                </div>
+              </div>
+              <label>
+                可选：粘贴图片或文档里的文字
+                <textarea id="documentText" placeholder="例如：阿里云 产品经理 2026-09-18 已投递；京东 用户运营 测评截止 2026-09-23"></textarea>
+              </label>
+              <div class="modal-actions">
+                <button class="secondary-btn" id="parseDocument">识别文件内容</button>
+                <button class="primary-btn" id="addFromDocument">一键加入新投递</button>
+              </div>
+              <div class="email-result" id="documentResult">当前版本先根据文件名和粘贴文字模拟识别。后续可以接入 OCR 和文档解析，自动读取截图、PDF、Word、Excel。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="jobModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="panel-head">
+        <h3 id="modalTitle">新投递岗位</h3>
+        <button class="ghost-btn" id="closeModal">关闭</button>
+      </div>
+      <form class="panel-body" id="jobForm">
+        <input type="hidden" id="jobId">
+        <div class="form-grid">
+          <label>公司名称<input id="company" required placeholder="例如：腾讯"></label>
+          <button class="secondary-btn" type="button" id="toggleMore">补充岗位、状态、提醒日期</button>
+          <div class="optional-fields" id="optionalFields">
+            <label>岗位名称<input id="role" placeholder="可不填"></label>
+            <label>当前状态<select id="status"></select></label>
+            <label>提醒日期<input id="deadline" type="date"></label>
+            <label>投递日期<input id="appliedDate" type="text" inputmode="decimal" placeholder="例如：9.12"></label>
+            <label>城市<input id="city" placeholder="可不填"></label>
+            <label>来源平台<input id="source" placeholder="可不填"></label>
+            <label>岗位链接<input id="link" type="url" placeholder="https://"></label>
+            <label>下一步动作<input id="nextStep" placeholder="例如：完成测评"></label>
+            <label class="wide">备注<textarea id="notes" placeholder="可不填"></textarea></label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-btn" type="button" id="deleteJob">删除</button>
+          <button class="secondary-btn" type="button" id="cancelForm">取消</button>
+          <button class="primary-btn" type="submit">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="emailOnboardingModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="panel-head">
+        <h3>是否接入邮箱？</h3>
+        <button class="ghost-btn" id="skipEmailConnect">暂不接入</button>
+      </div>
+      <div class="panel-body">
+        <p class="meta">接入后，投递助手会优先整理测评通知、面试邀请和截止时间。当前静态版先保存你的选择并模拟自动整理；真实自动读取邮箱需要后端授权服务。</p>
+        <label>
+          选择邮箱
+          <div class="provider-grid" id="onboardingProviderGrid">
+            <button class="provider active" data-provider="网易邮箱">网易邮箱</button>
+            <button class="provider" data-provider="QQ邮箱">QQ邮箱</button>
+            <button class="provider" data-provider="Outlook">Outlook</button>
+          </div>
+        </label>
+        <div class="modal-actions">
+          <button class="secondary-btn" id="laterEmailConnect">稍后再说</button>
+          <button class="primary-btn" id="confirmEmailConnect">接入并自动整理</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "autumnRecruitmentJobs.v2";
+    const EMAIL_PREF_KEY = "deliveryAssistantEmailPref.v1";
+    const statuses = [
+      ["waiting", "暂无回复"],
+      ["replied", "已收到回复"],
+      ["test", "测评待完成"],
+      ["interview", "面试邀请"],
+      ["result", "等待结果"],
+      ["closed", "已结束"],
+      ["offer", "Offer / 沟通中"]
+    ];
+
+    const seedJobs = [
+      {
+        id: crypto.randomUUID(),
+        company: "美团",
+        role: "商业分析管培生",
+        city: "北京",
+        source: "官网",
+        appliedDate: "2026-09-12",
+        deadline: "2026-09-20",
+        status: "test",
+        link: "",
+        nextStep: "完成在线测评",
+        notes: "邮件提醒 23:59 截止"
+      },
+      {
+        id: crypto.randomUUID(),
+        company: "腾讯",
+        role: "产品运营",
+        city: "深圳",
+        source: "内推",
+        appliedDate: "2026-09-10",
+        deadline: "2026-09-24",
+        status: "interview",
+        link: "",
+        nextStep: "准备一面案例",
+        notes: "需要确认面试时间"
+      },
+      {
+        id: crypto.randomUUID(),
+        company: "小红书",
+        role: "用户研究",
+        city: "上海",
+        source: "牛客",
+        appliedDate: "2026-09-08",
+        deadline: "",
+        status: "waiting",
+        link: "",
+        nextStep: "等待简历筛选",
+        notes: ""
+      },
+      {
+        id: crypto.randomUUID(),
+        company: "网易",
+        role: "内容策略",
+        city: "杭州",
+        source: "官网",
+        appliedDate: "2026-09-05",
+        deadline: "",
+        status: "result",
+        link: "",
+        nextStep: "等待笔试结果",
+        notes: ""
+      }
+    ];
+
+    let jobs = loadJobs();
+    let parsedEmailJob = null;
+    let parsedDocumentJobs = [];
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function loadJobs() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return seedJobs;
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : seedJobs;
+      } catch {
+        return seedJobs;
+      }
+    }
+
+    function saveJobs() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+    }
+
+    function statusLabel(value) {
+      return statuses.find(([key]) => key === value)?.[1] || "暂无回复";
+    }
+
+    function daysUntil(dateString) {
+      if (!dateString) return null;
+      const today = new Date();
+      const target = new Date(dateString + "T23:59:00");
+      today.setHours(0, 0, 0, 0);
+      return Math.ceil((target - today) / 86400000);
+    }
+
+    function deadlineText(job) {
+      const days = daysUntil(job.deadline);
+      if (days === null) return "无提醒";
+      if (days < 0) return "已过期";
+      if (days === 0) return "今天截止";
+      if (days === 1) return "明天截止";
+      return `${days} 天后截止`;
+    }
+
+    function formatShortDate(value) {
+      if (!value) return "";
+      const text = String(value).trim();
+      const full = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (full) return `${Number(full[2])}.${Number(full[3])}`;
+      const short = text.match(/^(\d{1,2})[.\/-](\d{1,2})$/);
+      if (short) return `${Number(short[1])}.${Number(short[2])}`;
+      return text;
+    }
+
+    function normalizeAppliedDate(value) {
+      const text = String(value || "").trim();
+      const full = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (full) return `${Number(full[2])}.${Number(full[3])}`;
+      const short = text.match(/^(\d{1,2})[.\/-](\d{1,2})$/);
+      if (short) return `${Number(short[1])}.${Number(short[2])}`;
+      return text;
+    }
+
+    function appliedDateSortValue(value) {
+      const text = String(value || "").trim();
+      const full = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (full) return Number(full[1]) * 10000 + Number(full[2]) * 100 + Number(full[3]);
+      const short = text.match(/^(\d{1,2})[.\/-](\d{1,2})$/);
+      if (short) return 2026 * 10000 + Number(short[1]) * 100 + Number(short[2]);
+      return 0;
+    }
+
+    function priorityClass(job) {
+      const days = daysUntil(job.deadline);
+      if (days !== null && days <= 1) return "danger";
+      if (days !== null && days <= 3) return "warn";
+      return "";
+    }
+
+    function fillStatusOptions() {
+      const options = statuses.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+      $("#status").innerHTML = options;
+      $("#statusFilter").innerHTML = `<option value="all">全部状态</option>${options}`;
+    }
+
+    function renderStats() {
+      const data = [
+        ["今日要做", getTodayTests().length],
+        ["测评待完成", jobs.filter((job) => job.status === "test").length],
+        ["面试邀请", jobs.filter((job) => job.status === "interview").length],
+        ["总投递", jobs.length]
+      ];
+      $("#stats").innerHTML = data.map(([label, num], index) => `
+        <div class="stat ${index === 3 ? "muted-stat" : ""}">
+          <div class="label">${label}</div>
+          <div class="num">${num}</div>
+        </div>
+      `).join("");
+    }
+
+    function getTodayTests() {
+      return jobs.filter((job) => job.status === "test" && daysUntil(job.deadline) === 0);
+    }
+
+    function getReminderJobs(includeClosed = false) {
+      return jobs
+        .filter((job) => includeClosed || job.status !== "closed")
+        .filter((job) => job.deadline || ["test", "interview", "replied"].includes(job.status))
+        .sort((a, b) => {
+          const ad = a.deadline || "9999-12-31";
+          const bd = b.deadline || "9999-12-31";
+          return ad.localeCompare(bd);
+        });
+    }
+
+    function renderTaskList(target, list, limit) {
+      const items = limit ? list.slice(0, limit) : list;
+      if (!items.length) {
+        target.innerHTML = `<div class="empty">目前没有紧急事项。添加新投递岗位或设置提醒日期后，这里会自动更新。</div>`;
+        return;
+      }
+      target.innerHTML = items.map((job) => {
+        const days = daysUntil(job.deadline);
+        const urgent = days !== null && days <= 1 ? "urgent" : "";
+        const soon = days !== null && days > 1 && days <= 3 ? "soon" : "";
+        return `
+          <div class="task ${urgent || soon}">
+            <div class="task-bar"></div>
+            <div>
+              <strong>${job.company}｜${job.role}</strong>
+              <div class="meta">${statusLabel(job.status)} · ${deadlineText(job)} · ${job.nextStep || "确认下一步"}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderTodayTests() {
+      const list = getTodayTests();
+      if (!list.length) {
+        $("#todayTests").innerHTML = `<div class="empty">今天没有截止测评。设置提醒日期后，今天到期的测评会优先放大显示。</div>`;
+        return;
+      }
+      $("#todayTests").innerHTML = list.map((job) => `
+        <div class="today-test">
+          <strong>${formatJobTitle(job)}</strong>
+          <div class="deadline-big">今天截止</div>
+          <div class="meta">${job.nextStep || "完成测评"}${job.notes ? " · " + job.notes : ""}</div>
+        </div>
+      `).join("");
+    }
+
+    function formatJobTitle(job) {
+      return job.role ? `${job.company}｜${job.role}` : job.company;
+    }
+
+    function getFilteredJobs() {
+      const query = $("#searchInput")?.value.trim().toLowerCase() || "";
+      const filter = $("#statusFilter")?.value || "all";
+      const sortBy = $("#sortSelect")?.value || "deadline";
+      let list = jobs.filter((job) => {
+        const haystack = `${job.company} ${job.role} ${job.city} ${job.source}`.toLowerCase();
+        return haystack.includes(query) && (filter === "all" || job.status === filter);
+      });
+
+      list.sort((a, b) => {
+        if (sortBy === "company") return a.company.localeCompare(b.company, "zh-Hans-CN");
+        if (sortBy === "applied") return appliedDateSortValue(b.appliedDate) - appliedDateSortValue(a.appliedDate);
+        return (a.deadline || "9999-12-31").localeCompare(b.deadline || "9999-12-31");
+      });
+      return list;
+    }
+
+    function jobRows(list) {
+      if (!list.length) {
+        return `<div class="empty">没有匹配的岗位。可以换个筛选条件，或者添加一条新投递记录。</div>`;
+      }
+
+      return list.map((job) => `
+        <div class="job-row">
+          <div>
+            <strong>${formatJobTitle(job)}</strong>
+            <div class="meta">${[job.city, job.source].filter(Boolean).join(" · ") || "只记录公司"}</div>
+          </div>
+          <span class="tag ${job.status}">${statusLabel(job.status)}</span>
+          <div class="meta applied-meta">投递：${formatShortDate(job.appliedDate) || "今天"}</div>
+          <div class="deadline ${priorityClass(job)}">${deadlineText(job)}</div>
+          <button class="secondary-btn" data-edit="${job.id}">编辑</button>
+        </div>
+      `).join("");
+    }
+
+    function renderJobs() {
+      $("#jobList").innerHTML = jobRows(getFilteredJobs());
+    }
+
+    function renderOverviewJobs() {
+      $("#overviewJobs").innerHTML = jobRows(getFilteredJobs().slice(0, 8));
+    }
+
+    function renderAll() {
+      renderStats();
+      renderTodayTests();
+      renderTaskList($("#allTasks"), getReminderJobs(), null);
+      renderJobs();
+      renderOverviewJobs();
+    }
+
+    function switchTab(tab) {
+      const titles = {
+        overview: ["总览", "先看今天要做什么，再处理岗位进度。"],
+        jobs: ["岗位", "所有投递记录集中管理，支持搜索、筛选和编辑。"],
+        reminders: ["提醒", "测评、面试、HR 回复和补材料都放在这里。"],
+        email: ["导入整理", "选择邮箱、图片或文档，把新投递岗位一键整理进列表。"]
+      };
+      $$(".section").forEach((section) => section.classList.toggle("active", section.id === tab));
+      $$(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
+      $("#pageTitle").textContent = titles[tab][0];
+      $("#pageSub").textContent = titles[tab][1];
+    }
+
+    function openModal(job = null) {
+      $("#jobForm").reset();
+      $("#modalTitle").textContent = job ? "编辑岗位" : "新投递岗位";
+      $("#deleteJob").style.display = job ? "inline-block" : "none";
+      $("#optionalFields").classList.toggle("active", Boolean(job));
+      $("#toggleMore").textContent = job ? "收起补充信息" : "补充岗位、状态、提醒日期";
+      $("#jobId").value = job?.id || "";
+      $("#company").value = job?.company || "";
+      $("#role").value = job?.role || "";
+      $("#city").value = job?.city || "";
+      $("#source").value = job?.source || "";
+      $("#appliedDate").value = formatShortDate(job?.appliedDate) || formatShortDate(new Date().toISOString().slice(0, 10));
+      $("#deadline").value = job?.deadline || "";
+      $("#status").value = job?.status || "waiting";
+      $("#link").value = job?.link || "";
+      $("#nextStep").value = job?.nextStep || "";
+      $("#notes").value = job?.notes || "";
+      $("#jobModal").classList.add("active");
+      $("#jobModal").setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal() {
+      $("#jobModal").classList.remove("active");
+      $("#jobModal").setAttribute("aria-hidden", "true");
+    }
+
+    function normalizeText(value) {
+      return (value || "").trim().toLowerCase().replace(/\s+/g, "");
+    }
+
+    function isDuplicateJob(nextJob, ignoreId = "") {
+      const nextCompany = normalizeText(nextJob.company);
+      const nextRole = normalizeText(nextJob.role);
+      return jobs.some((job) => {
+        if (job.id === ignoreId) return false;
+        const sameCompany = normalizeText(job.company) === nextCompany;
+        const sameRole = !nextRole || !normalizeText(job.role) || normalizeText(job.role) === nextRole;
+        return sameCompany && sameRole;
+      });
+    }
+
+    function filterImportableJobs(nextJobs) {
+      const accepted = [];
+      const skipped = [];
+      nextJobs.forEach((job) => {
+        if (!normalizeText(job.company) || job.company === "待确认公司") {
+          skipped.push(`${formatJobTitle(job)}：缺少公司名称`);
+          return;
+        }
+        if (isDuplicateJob(job) || accepted.some((item) => normalizeText(item.company) === normalizeText(job.company) && normalizeText(item.role) === normalizeText(job.role))) {
+          skipped.push(`${formatJobTitle(job)}：疑似重复`);
+          return;
+        }
+        accepted.push(job);
+      });
+      return { accepted, skipped };
+    }
+
+    function parseRecruitmentText(text, source = "导入") {
+      const dateMatch = text.match(/(20\d{2})[年\-\/.](\d{1,2})[月\-\/.](\d{1,2})/);
+      const companyMatch = text.match(/(?:公司|来自|【)(?:：|:)?\s*([\u4e00-\u9fa5A-Za-z0-9]{2,18})/);
+      const roleMatch = text.match(/(?:岗位|职位|申请)(?:：|:)?\s*([\u4e00-\u9fa5A-Za-z0-9\s]{2,24})/);
+      const isInterview = /面试|群面|终面|interview/i.test(text);
+      const isTest = /测评|笔试|assessment|截止/i.test(text);
+      const deadline = dateMatch
+        ? `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[3].padStart(2, "0")}`
+        : "";
+
+      return {
+        id: crypto.randomUUID(),
+        company: companyMatch?.[1]?.replace(/[，。,.]/g, "") || "待确认公司",
+        role: roleMatch?.[1]?.trim() || "待确认岗位",
+        city: "",
+        source,
+        appliedDate: formatShortDate(new Date().toISOString().slice(0, 10)),
+        deadline,
+        status: isInterview ? "interview" : isTest ? "test" : "replied",
+        link: "",
+        nextStep: isInterview ? "确认并准备面试" : isTest ? "完成测评 / 笔试" : "查看邮件并确认下一步",
+        notes: text.slice(0, 240)
+      };
+    }
+
+    function parseEmailText(text) {
+      const provider = $(".provider.active")?.dataset.provider || "邮箱";
+      return parseRecruitmentText(text, provider);
+    }
+
+    function getEmailPreference() {
+      try {
+        return JSON.parse(localStorage.getItem(EMAIL_PREF_KEY) || "null");
+      } catch {
+        return null;
+      }
+    }
+
+    function saveEmailPreference(pref) {
+      localStorage.setItem(EMAIL_PREF_KEY, JSON.stringify(pref));
+    }
+
+    function setProvider(provider) {
+      $$(".provider").forEach((button) => {
+        button.classList.toggle("active", button.dataset.provider === provider);
+      });
+    }
+
+    function updateEmailStatus() {
+      const pref = getEmailPreference();
+      $("#emailResult").className = "email-result";
+      if (pref?.connected) {
+        setProvider(pref.provider);
+        $("#emailImportPanel").style.display = "block";
+        $$("[data-email-import]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.emailImport === "yes");
+        });
+        $("#emailResult").innerHTML = `<strong>已选择 ${pref.provider}</strong><div class="meta">静态版会先模拟自动整理。真正部署时需要接入邮箱授权服务，授权后才能自动读取邮件。</div>`;
+      } else if (pref?.connected === false) {
+        $("#emailImportPanel").style.display = "none";
+        $$("[data-email-import]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.emailImport === "no");
+        });
+        $("#emailResult").textContent = "你已选择暂不接入邮箱，可以随时在这里重新选择导入邮箱。";
+      }
+    }
+
+    function openEmailOnboardingIfNeeded() {
+      if (getEmailPreference()) return;
+      $("#emailOnboardingModal").classList.add("active");
+      $("#emailOnboardingModal").setAttribute("aria-hidden", "false");
+    }
+
+    function closeEmailOnboarding() {
+      $("#emailOnboardingModal").classList.remove("active");
+      $("#emailOnboardingModal").setAttribute("aria-hidden", "true");
+    }
+
+    function simulateEmailAutoScan() {
+      const provider = $(".provider.active")?.dataset.provider || getEmailPreference()?.provider || "网易邮箱";
+      setProvider(provider);
+      $("#emailText").value = `来自${provider}：公司：京东，岗位：用户运营。恭喜你通过简历筛选，请在 2026-09-23 前完成在线测评。`;
+      parsedEmailJob = parseEmailText($("#emailText").value);
+      $("#emailResult").className = "email-result warning";
+      $("#emailResult").innerHTML = `
+        <strong>已模拟扫描 ${provider}</strong>
+        <div class="meta">识别到：${formatJobTitle(parsedEmailJob)} · ${statusLabel(parsedEmailJob.status)} · ${parsedEmailJob.deadline || "无提醒日期"}</div>
+        <div class="meta">确认无误后点击“加入新投递”。真实邮箱自动整理需要后端授权后才能启用。</div>
+      `;
+      switchTab("email");
+    }
+
+    function parseDocumentText(text, fileName = "") {
+      const baseText = [text, fileName].filter(Boolean).join(" ");
+      const lines = baseText.split(/\n|；|;/).map((line) => line.trim()).filter(Boolean);
+      const candidates = lines.length ? lines : [baseText || "待确认公司"];
+      return candidates.slice(0, 6).map((line) => {
+        const job = parseRecruitmentText(line, "图片 / 文档");
+        if (job.company === "待确认公司" && fileName) {
+          job.company = fileName.replace(/\.[^.]+$/, "").slice(0, 18) || "待确认公司";
+        }
+        job.notes = `来自导入文件：${fileName || "手动文字"}${line ? "；" + line.slice(0, 160) : ""}`;
+        return job;
+      });
+    }
+
+    fillStatusOptions();
+    renderAll();
+    updateEmailStatus();
+    openEmailOnboardingIfNeeded();
+
+    $$(".nav button").forEach((button) => {
+      button.addEventListener("click", () => switchTab(button.dataset.tab));
+    });
+
+    $$("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => switchTab(button.dataset.jump));
+    });
+
+    $("#openAdd").addEventListener("click", () => openModal());
+    $("#closeModal").addEventListener("click", closeModal);
+    $("#cancelForm").addEventListener("click", closeModal);
+    $("#jobModal").addEventListener("click", (event) => {
+      if (event.target.id === "jobModal") closeModal();
+    });
+
+    $("#jobForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const id = $("#jobId").value || crypto.randomUUID();
+      const nextJob = {
+        id,
+        company: $("#company").value.trim(),
+        role: $("#role").value.trim(),
+        city: $("#city").value.trim(),
+        source: $("#source").value.trim(),
+        appliedDate: normalizeAppliedDate($("#appliedDate").value),
+        deadline: $("#deadline").value,
+        status: $("#status").value || "waiting",
+        link: $("#link").value.trim(),
+        nextStep: $("#nextStep").value.trim(),
+        notes: $("#notes").value.trim()
+      };
+      if (isDuplicateJob(nextJob, id) && !confirm("这个公司或岗位看起来已经记录过了，仍然保存吗？")) {
+        return;
+      }
+      jobs = jobs.some((job) => job.id === id)
+        ? jobs.map((job) => job.id === id ? nextJob : job)
+        : [nextJob, ...jobs];
+      saveJobs();
+      closeModal();
+      renderAll();
+    });
+
+    $("#deleteJob").addEventListener("click", () => {
+      const id = $("#jobId").value;
+      jobs = jobs.filter((job) => job.id !== id);
+      saveJobs();
+      closeModal();
+      renderAll();
+    });
+
+    function handleEditClick(event) {
+      const id = event.target.dataset.edit;
+      if (!id) return;
+      const job = jobs.find((item) => item.id === id);
+      if (job) openModal(job);
+    }
+
+    $("#jobList").addEventListener("click", handleEditClick);
+    $("#overviewJobs").addEventListener("click", handleEditClick);
+
+    $("#toggleMore").addEventListener("click", () => {
+      $("#optionalFields").classList.toggle("active");
+      $("#toggleMore").textContent = $("#optionalFields").classList.contains("active")
+        ? "收起补充信息"
+        : "补充岗位、状态、提醒日期";
+    });
+
+    ["searchInput", "statusFilter", "sortSelect"].forEach((id) => {
+      $("#" + id).addEventListener("input", () => {
+        renderJobs();
+        renderOverviewJobs();
+      });
+    });
+
+    $("#resetData").addEventListener("click", () => {
+      jobs = seedJobs.map((job) => ({ ...job, id: crypto.randomUUID() }));
+      saveJobs();
+      renderAll();
+    });
+
+    $("#completeOld").addEventListener("click", () => {
+      jobs = jobs.map((job) => {
+        const days = daysUntil(job.deadline);
+        return days !== null && days < 0 ? { ...job, status: "closed" } : job;
+      });
+      saveJobs();
+      renderAll();
+    });
+
+    $$("#providerGrid .provider").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        setProvider(button.dataset.provider);
+        saveEmailPreference({ connected: true, provider: button.dataset.provider });
+        updateEmailStatus();
+      });
+    });
+
+    $$("#onboardingProviderGrid .provider").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        setProvider(button.dataset.provider);
+      });
+    });
+
+    $$("[data-email-import]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        $$("[data-email-import]").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        const enabled = button.dataset.emailImport === "yes";
+        const provider = $(".provider.active")?.dataset.provider || "网易邮箱";
+        saveEmailPreference(enabled ? { connected: true, provider } : { connected: false, provider: "" });
+        $("#emailImportPanel").style.display = enabled ? "block" : "none";
+        $("#emailResult").textContent = enabled
+          ? "请选择邮箱类型，再粘贴邮件内容进行整理。"
+          : "已选择暂不导入邮箱。你仍然可以用图片 / 文档导入整理新投递。";
+      });
+    });
+
+    $("#skipEmailConnect").addEventListener("click", () => {
+      saveEmailPreference({ connected: false, provider: "" });
+      closeEmailOnboarding();
+      updateEmailStatus();
+    });
+
+    $("#laterEmailConnect").addEventListener("click", () => {
+      saveEmailPreference({ connected: false, provider: "" });
+      closeEmailOnboarding();
+      updateEmailStatus();
+    });
+
+    $("#confirmEmailConnect").addEventListener("click", () => {
+      const provider = $("#onboardingProviderGrid .provider.active")?.dataset.provider || "网易邮箱";
+      saveEmailPreference({ connected: true, provider });
+      setProvider(provider);
+      closeEmailOnboarding();
+      simulateEmailAutoScan();
+    });
+
+    $("#emailOnboardingModal").addEventListener("click", (event) => {
+      if (event.target.id === "emailOnboardingModal") {
+        saveEmailPreference({ connected: false, provider: "" });
+        closeEmailOnboarding();
+        updateEmailStatus();
+      }
+    });
+
+    $("#autoScanEmail").addEventListener("click", (event) => {
+      event.preventDefault();
+      const pref = getEmailPreference();
+      if (!pref?.connected) {
+        $("#emailOnboardingModal").classList.add("active");
+        $("#emailOnboardingModal").setAttribute("aria-hidden", "false");
+        return;
+      }
+      simulateEmailAutoScan();
+    });
+
+    $("#parseEmail").addEventListener("click", (event) => {
+      event.preventDefault();
+      $("#emailResult").className = "email-result";
+      if (!$("#emailText").value.trim()) {
+        $("#emailResult").classList.add("danger");
+        $("#emailResult").textContent = "还没有邮件内容。请先粘贴测评、面试或投递回复邮件，再整理。";
+        return;
+      }
+      parsedEmailJob = parseEmailText($("#emailText").value);
+      const duplicate = isDuplicateJob(parsedEmailJob);
+      if (duplicate) $("#emailResult").classList.add("warning");
+      $("#emailResult").innerHTML = `
+        <strong>识别结果</strong>
+        <div class="meta">邮箱：${$(".provider.active")?.dataset.provider || "未选择"}</div>
+        <div class="meta">公司：${parsedEmailJob.company}</div>
+        <div class="meta">岗位：${parsedEmailJob.role}</div>
+        <div class="meta">状态：${statusLabel(parsedEmailJob.status)}</div>
+        <div class="meta">提醒：${parsedEmailJob.deadline || "未识别到日期"}</div>
+        ${duplicate ? `<div class="meta">提示：列表里可能已有相同公司或岗位，加入时会二次确认。</div>` : ""}
+      `;
+    });
+
+    $("#addFromEmail").addEventListener("click", (event) => {
+      event.preventDefault();
+      if (!parsedEmailJob) parsedEmailJob = parseEmailText($("#emailText").value);
+      $("#emailResult").className = "email-result";
+      if (!$("#emailText").value.trim()) {
+        $("#emailResult").classList.add("danger");
+        $("#emailResult").textContent = "没有可加入的邮件内容。";
+        return;
+      }
+      if (isDuplicateJob(parsedEmailJob) && !confirm("这条邮箱识别结果可能已经在列表里了，仍然加入吗？")) {
+        return;
+      }
+      jobs = [parsedEmailJob, ...jobs];
+      parsedEmailJob = null;
+      saveJobs();
+      renderAll();
+      switchTab("jobs");
+    });
+
+    $("#parseDocument").addEventListener("click", (event) => {
+      event.preventDefault();
+      const fileName = $("#importFile").files?.[0]?.name || "";
+      $("#documentResult").className = "email-result";
+      if (!fileName && !$("#documentText").value.trim()) {
+        $("#documentResult").classList.add("danger");
+        $("#documentResult").textContent = "还没有选择文件，也没有粘贴文字。请先上传照片/文档或粘贴内容。";
+        return;
+      }
+      parsedDocumentJobs = parseDocumentText($("#documentText").value, fileName);
+      const { accepted, skipped } = filterImportableJobs(parsedDocumentJobs);
+      if (skipped.length) $("#documentResult").classList.add("warning");
+      $("#documentResult").innerHTML = `
+        <strong>识别到 ${parsedDocumentJobs.length} 条，建议加入 ${accepted.length} 条</strong>
+        ${accepted.map((job) => `
+          <div class="meta">${formatJobTitle(job)} · ${statusLabel(job.status)} · ${job.deadline || "无提醒日期"}</div>
+        `).join("")}
+        ${skipped.length ? `<div class="meta">已跳过：${skipped.join("；")}</div>` : ""}
+      `;
+    });
+
+    $("#addFromDocument").addEventListener("click", (event) => {
+      event.preventDefault();
+      const fileName = $("#importFile").files?.[0]?.name || "";
+      if (!parsedDocumentJobs.length) parsedDocumentJobs = parseDocumentText($("#documentText").value, fileName);
+      $("#documentResult").className = "email-result";
+      const { accepted, skipped } = filterImportableJobs(parsedDocumentJobs);
+      if (!accepted.length) {
+        $("#documentResult").classList.add("danger");
+        $("#documentResult").textContent = skipped.length ? `没有可加入的新投递：${skipped.join("；")}` : "没有识别到可加入的新投递。";
+        return;
+      }
+      jobs = [...accepted, ...jobs];
+      parsedDocumentJobs = [];
+      saveJobs();
+      renderAll();
+      switchTab("jobs");
+    });
+
+    $("#importFile").addEventListener("change", () => {
+      const fileName = $("#importFile").files?.[0]?.name;
+      if (!fileName) return;
+      parsedDocumentJobs = [];
+      $("#documentResult").innerHTML = `已选择 <strong>${fileName}</strong>。点击“识别文件内容”后，会先按文件名和补充文字生成整理结果。`;
+    });
+  </script>
+</body>
+</html>
